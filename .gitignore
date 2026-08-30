@@ -1,0 +1,25 @@
+# Dependencias
+node_modules/
+
+# Artefactos de build
+backend/dist/
+frontend/.next/
+frontend/out/
+*.tsbuildinfo
+
+# Variables de entorno (se versiona solo el ejemplo)
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Cobertura y logs
+coverage/
+*.log
+npm-debug.log*
+
+# Sistema operativo y editores
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

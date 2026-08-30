@@ -3,56 +3,33 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { AccessibleInput } from '@/components/AccessibleInput';
-import { Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
-
-const registerSchema = z.object({
-  firstName: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
-  lastName: z.string().min(2, "El apellido debe tener al menos 2 caracteres"),
-  email: z.string().email("Correo electrónico inválido"),
-  age: z.coerce.number().min(18, "Debes ser mayor de 18 años").max(120, "Edad no válida"),
-  password: z.string()
-    .min(8, "Mínimo 8 caracteres")
-    .regex(/[A-Z]/, "Debe contener al menos una mayúscula")
-    .regex(/[0-9]/, "Debe contener al menos un número")
-    .regex(/[^A-Za-z0-9]/, "Debe contener al menos un carácter especial"),
-  confirmPassword: z.string()
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Las contraseñas no coinciden",
-  path: ["confirmPassword"],
-});
-
-type RegisterFormValues = z.infer<typeof registerSchema>;
+import { AccessibleInput } from '@/components/AccessibleInput';
+import { PasswordInput } from '@/components/PasswordInput';
+import { FormAlert } from '@/components/FormAlert';
+import { registerSchema, type RegisterFormValues } from '@/lib/schemas/auth.schema';
+import { authApi } from '@/lib/api/authApi';
 
 export default function RegisterPage() {
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [serverError, setServerError] = useState("");
+  const [serverError, setServerError] = useState('');
   const [success, setSuccess] = useState(false);
 
-  const { register, handleSubmit, formState: { errors, isValid, touchedFields }, watch } = useForm<RegisterFormValues>({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, touchedFields, isSubmitting },
+  } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
-    mode: "onChange",
+    mode: 'onChange',
   });
 
   const onSubmit = async (data: RegisterFormValues) => {
-    setServerError("");
+    setServerError('');
     try {
-      const res = await fetch("http://localhost:3001/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      if (res.ok) {
-        setSuccess(true);
-      } else {
-        const errData = await res.json();
-        setServerError(errData.message || "Error al registrar usuario");
-      }
+      await authApi.register(data);
+      setSuccess(true);
     } catch (error) {
-      setServerError("Error de conexión con el servidor");
+      setServerError((error as Error).message);
     }
   };
 
@@ -75,25 +52,21 @@ export default function RegisterPage() {
         <p className="text-slate-500 mt-2">Ingresa tus datos para registrarte</p>
       </div>
 
-      {serverError && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded text-sm text-center" role="alert">
-          {serverError}
-        </div>
-      )}
+      {serverError && <FormAlert message={serverError} />}
 
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <div className="grid grid-cols-2 gap-4">
           <AccessibleInput
             label="Nombre"
             type="text"
-            {...register("firstName")}
+            {...register('firstName')}
             error={errors.firstName?.message}
             isValid={touchedFields.firstName && !errors.firstName}
           />
           <AccessibleInput
             label="Apellido"
             type="text"
-            {...register("lastName")}
+            {...register('lastName')}
             error={errors.lastName?.message}
             isValid={touchedFields.lastName && !errors.lastName}
           />
@@ -102,7 +75,7 @@ export default function RegisterPage() {
         <AccessibleInput
           label="Correo Electrónico"
           type="email"
-          {...register("email")}
+          {...register('email')}
           error={errors.email?.message}
           isValid={touchedFields.email && !errors.email}
         />
@@ -110,54 +83,33 @@ export default function RegisterPage() {
         <AccessibleInput
           label="Edad"
           type="number"
-          {...register("age")}
+          {...register('age')}
           error={errors.age?.message}
           isValid={touchedFields.age && !errors.age}
         />
 
-        <div className="relative">
-          <AccessibleInput
-            label="Contraseña"
-            type={showPassword ? "text" : "password"}
-            {...register("password")}
-            error={errors.password?.message}
-            isValid={touchedFields.password && !errors.password}
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-10 text-slate-400 hover:text-slate-600 focus-ring rounded"
-            aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-          >
-            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-          </button>
-        </div>
+        <PasswordInput
+          label="Contraseña"
+          {...register('password')}
+          error={errors.password?.message}
+          isValid={touchedFields.password && !errors.password}
+        />
 
-        <div className="relative">
-          <AccessibleInput
-            label="Confirmar Contraseña"
-            type={showConfirmPassword ? "text" : "password"}
-            {...register("confirmPassword")}
-            error={errors.confirmPassword?.message}
-            isValid={touchedFields.confirmPassword && !errors.confirmPassword}
-          />
-          <button
-            type="button"
-            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-            className="absolute right-3 top-10 text-slate-400 hover:text-slate-600 focus-ring rounded"
-            aria-label={showConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-          >
-            {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-          </button>
-        </div>
+        <PasswordInput
+          label="Confirmar Contraseña"
+          {...register('confirmPassword')}
+          error={errors.confirmPassword?.message}
+          isValid={touchedFields.confirmPassword && !errors.confirmPassword}
+        />
 
         <button
           type="submit"
-          className="w-full mt-6 bg-primary text-white font-medium py-3 rounded shadow-flat hover:bg-primary-hover focus-ring transition-colors"
+          disabled={isSubmitting}
+          className="w-full mt-6 bg-primary text-white font-medium py-3 rounded shadow-flat hover:bg-primary-hover focus-ring transition-colors disabled:opacity-60"
         >
-          Registrarse
+          {isSubmitting ? 'Registrando...' : 'Registrarse'}
         </button>
-        
+
         <p className="mt-4 text-center text-sm text-slate-500">
           ¿Ya tienes cuenta?{' '}
           <Link href="/login" className="text-primary font-medium hover:underline focus-ring rounded">

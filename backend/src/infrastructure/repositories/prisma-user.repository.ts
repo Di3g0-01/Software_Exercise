@@ -1,24 +1,25 @@
 import { Injectable } from '@nestjs/common';
 import { UserRepository } from '../../domain/repositories/user.repository';
+import { NewUser, User, UserChanges } from '../../domain/entities/user.entity';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class PrismaUserRepository implements UserRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findByEmail(email: string): Promise<any> {
+  findByEmail(email: string): Promise<User | null> {
     return this.prisma.user.findUnique({ where: { email } });
   }
 
-  async findByVerificationToken(token: string): Promise<any> {
+  findByVerificationToken(token: string): Promise<User | null> {
     return this.prisma.user.findFirst({ where: { verificationToken: token } });
   }
 
-  async create(data: any): Promise<any> {
+  create(data: NewUser): Promise<User> {
     return this.prisma.user.create({ data });
   }
 
-  async update(id: string, data: any): Promise<any> {
-    return this.prisma.user.update({ where: { id }, data });
+  update(id: string, changes: UserChanges): Promise<User> {
+    return this.prisma.user.update({ where: { id }, data: changes });
   }
 }

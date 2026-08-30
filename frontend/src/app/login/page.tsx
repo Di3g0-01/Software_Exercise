@@ -3,47 +3,32 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { AccessibleInput } from '@/components/AccessibleInput';
-import { Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-
-const loginSchema = z.object({
-  email: z.string().email("Correo electrónico inválido"),
-  password: z.string().min(1, "La contraseña es obligatoria"),
-});
-
-type LoginFormValues = z.infer<typeof loginSchema>;
+import { AccessibleInput } from '@/components/AccessibleInput';
+import { PasswordInput } from '@/components/PasswordInput';
+import { FormAlert } from '@/components/FormAlert';
+import { loginSchema, type LoginFormValues } from '@/lib/schemas/auth.schema';
+import { authApi } from '@/lib/api/authApi';
+import { saveSession } from '@/lib/session';
 
 export default function LoginPage() {
-  const [showPassword, setShowPassword] = useState(false);
-  const [serverError, setServerError] = useState("");
-  const router = useRouter();
+  const [serverError, setServerError] = useState('');
+  const [signedIn, setSignedIn] = useState(false);
 
-  const { register, handleSubmit, formState: { errors } } = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
-  });
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginFormValues>({ resolver: zodResolver(loginSchema) });
 
   const onSubmit = async (data: LoginFormValues) => {
-    setServerError("");
+    setServerError('');
     try {
-      const res = await fetch("http://localhost:3001/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      if (res.ok) {
-        const { access_token } = await res.json();
-        localStorage.setItem("token", access_token);
-        alert("¡Sesión iniciada con éxito! (Redirigiendo...)");
-        // Aquí podrías redirigir al dashboard: router.push('/dashboard')
-      } else {
-        const errData = await res.json();
-        setServerError(errData.message || "Error al iniciar sesión");
-      }
+      const { access_token } = await authApi.login(data);
+      saveSession(access_token);
+      setSignedIn(true);
     } catch (error) {
-      setServerError("Error de conexión con el servidor");
+      setServerError((error as Error).message);
     }
   };
 
@@ -54,9 +39,14 @@ export default function LoginPage() {
         <p className="text-slate-500 mt-2">Ingresa tus credenciales para acceder</p>
       </div>
 
-      {serverError && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded text-sm text-center" role="alert">
-          {serverError}
+      {serverError && <FormAlert message={serverError} />}
+
+      {signedIn && (
+        <div
+          className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded text-sm text-center"
+          role="status"
+        >
+          ¡Sesión iniciada con éxito!
         </div>
       )}
 
@@ -64,34 +54,24 @@ export default function LoginPage() {
         <AccessibleInput
           label="Correo Electrónico"
           type="email"
-          {...register("email")}
+          {...register('email')}
           error={errors.email?.message}
         />
 
-        <div className="relative">
-          <AccessibleInput
-            label="Contraseña"
-            type={showPassword ? "text" : "password"}
-            {...register("password")}
-            error={errors.password?.message}
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-10 text-slate-400 hover:text-slate-600 focus-ring rounded"
-            aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-          >
-            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-          </button>
-        </div>
+        <PasswordInput
+          label="Contraseña"
+          {...register('password')}
+          error={errors.password?.message}
+        />
 
         <button
           type="submit"
-          className="w-full mt-6 bg-primary text-white font-medium py-3 rounded shadow-flat hover:bg-primary-hover focus-ring transition-colors"
+          disabled={isSubmitting}
+          className="w-full mt-6 bg-primary text-white font-medium py-3 rounded shadow-flat hover:bg-primary-hover focus-ring transition-colors disabled:opacity-60"
         >
-          Entrar
+          {isSubmitting ? 'Entrando...' : 'Entrar'}
         </button>
-        
+
         <p className="mt-4 text-center text-sm text-slate-500">
           ¿No tienes cuenta?{' '}
           <Link href="/register" className="text-primary font-medium hover:underline focus-ring rounded">

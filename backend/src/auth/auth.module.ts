@@ -1,33 +1,15 @@
 import { Module } from '@nestjs/common';
-import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
-import { EmailModule } from '../email/email.module';
-import { JwtModule } from '@nestjs/jwt';
-import { UserRepository } from '../domain/repositories/user.repository';
-import { PrismaUserRepository } from '../infrastructure/repositories/prisma-user.repository';
-import { HashProvider } from '../domain/providers/hash.provider';
-import { BcryptHashProvider } from '../infrastructure/providers/bcrypt-hash.provider';
+import { RegisterUserUseCase } from '../application/use-cases/register-user.use-case';
+import { LoginUseCase } from '../application/use-cases/login.use-case';
+import { VerifyEmailUseCase } from '../application/use-cases/verify-email.use-case';
+import { PersistenceModule } from '../infrastructure/repositories/persistence.module';
+import { SecurityModule } from '../infrastructure/security/security.module';
+import { NotificationsModule } from '../infrastructure/notifications/notifications.module';
 
 @Module({
-  imports: [
-    EmailModule,
-    JwtModule.register({
-      global: true,
-      secret: process.env.JWT_SECRET || 'fallback_secret',
-      signOptions: { expiresIn: '1h' },
-    }),
-  ],
+  imports: [PersistenceModule, SecurityModule, NotificationsModule],
   controllers: [AuthController],
-  providers: [
-    AuthService,
-    {
-      provide: UserRepository,
-      useClass: PrismaUserRepository,
-    },
-    {
-      provide: HashProvider,
-      useClass: BcryptHashProvider,
-    },
-  ],
+  providers: [RegisterUserUseCase, LoginUseCase, VerifyEmailUseCase],
 })
 export class AuthModule {}

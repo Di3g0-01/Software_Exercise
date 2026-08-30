@@ -1,31 +1,44 @@
 import {
-  Controller,
-  Post,
-  Get,
   Body,
-  Query,
+  Controller,
+  Get,
   HttpCode,
   HttpStatus,
+  Post,
+  Query,
 } from '@nestjs/common';
-import { AuthService } from './auth.service';
+import { RegisterUserUseCase } from '../application/use-cases/register-user.use-case';
+import { LoginUseCase } from '../application/use-cases/login.use-case';
+import { VerifyEmailUseCase } from '../application/use-cases/verify-email.use-case';
+import { RegisterDto } from '../application/dto/register.dto';
+import { LoginDto } from '../application/dto/login.dto';
+import { VerifyEmailDto } from '../application/dto/verify-email.dto';
 
+/**
+ * Adaptador HTTP: su unica razon de cambio es el contrato REST de /auth.
+ * Toda la logica vive en los casos de uso.
+ */
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly registerUser: RegisterUserUseCase,
+    private readonly login: LoginUseCase,
+    private readonly verifyEmail: VerifyEmailUseCase,
+  ) {}
 
   @Post('register')
-  async register(@Body() body: any) {
-    return this.authService.register(body);
+  register(@Body() body: RegisterDto) {
+    return this.registerUser.execute(body);
   }
 
   @HttpCode(HttpStatus.OK)
   @Post('login')
-  async login(@Body() body: any) {
-    return this.authService.login(body);
+  signIn(@Body() body: LoginDto) {
+    return this.login.execute(body);
   }
 
   @Get('verify')
-  async verify(@Query('token') token: string) {
-    return this.authService.verify(token);
+  verify(@Query() query: VerifyEmailDto) {
+    return this.verifyEmail.execute(query.token);
   }
 }
