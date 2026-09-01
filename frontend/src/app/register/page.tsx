@@ -4,11 +4,32 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
+<<<<<<< HEAD
 import { AccessibleInput } from '@/components/AccessibleInput';
 import { PasswordInput } from '@/components/PasswordInput';
 import { FormAlert } from '@/components/FormAlert';
 import { registerSchema, type RegisterFormValues } from '@/lib/schemas/auth.schema';
 import { authApi } from '@/lib/api/authApi';
+=======
+
+const registerSchema = z.object({
+  firstName: z.string().min(3, "El nombre debe tener al menos 3 caracteres"),
+  lastName: z.string().min(3, "El apellido debe tener al menos 3 caracteres"),
+  email: z.string().email("Correo electrónico inválido"),
+  age: z.coerce.number().min(21, "Debes ser mayor de 21 años").max(120, "Edad no válida"),
+  password: z.string()
+    .min(8, "Mínimo 8 caracteres")
+    .regex(/[A-Z]/, "Debe contener al menos una mayúscula")
+    .regex(/[0-9]/, "Debe contener al menos un número")
+    .regex(/[^A-Za-z0-9]/, "Debe contener al menos un carácter especial"),
+  confirmPassword: z.string()
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Las contraseñas no coinciden",
+  path: ["confirmPassword"],
+});
+
+type RegisterFormValues = z.infer<typeof registerSchema>;
+>>>>>>> 22bab61 (Update form validation rules on frontend and backend)
 
 export default function RegisterPage() {
   const [serverError, setServerError] = useState('');
