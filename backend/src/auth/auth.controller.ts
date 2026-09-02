@@ -7,17 +7,12 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-<<<<<<< HEAD
 import { RegisterUserUseCase } from '../application/use-cases/register-user.use-case';
 import { LoginUseCase } from '../application/use-cases/login.use-case';
 import { VerifyEmailUseCase } from '../application/use-cases/verify-email.use-case';
 import { RegisterDto } from '../application/dto/register.dto';
 import { LoginDto } from '../application/dto/login.dto';
 import { VerifyEmailDto } from '../application/dto/verify-email.dto';
-=======
-import { AuthService } from './auth.service';
-import { RegisterDto } from './dto/register.dto';
->>>>>>> 22bab61 (Update form validation rules on frontend and backend)
 
 /**
  * Adaptador HTTP: su unica razon de cambio es el contrato REST de /auth.
@@ -32,13 +27,8 @@ export class AuthController {
   ) {}
 
   @Post('register')
-<<<<<<< HEAD
   register(@Body() body: RegisterDto) {
     return this.registerUser.execute(body);
-=======
-  async register(@Body() body: RegisterDto) {
-    return this.authService.register(body);
->>>>>>> 22bab61 (Update form validation rules on frontend and backend)
   }
 
   @HttpCode(HttpStatus.OK)

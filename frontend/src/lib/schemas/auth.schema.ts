@@ -3,12 +3,12 @@ import * as z from 'zod';
 /** Unica responsabilidad: las reglas de validacion de los formularios de auth. */
 export const registerSchema = z
   .object({
-    firstName: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
-    lastName: z.string().min(2, 'El apellido debe tener al menos 2 caracteres'),
+    firstName: z.string().min(3, 'El nombre debe tener al menos 3 caracteres'),
+    lastName: z.string().min(3, 'El apellido debe tener al menos 3 caracteres'),
     email: z.string().email('Correo electrónico inválido'),
     age: z.coerce
       .number()
-      .min(18, 'Debes ser mayor de 18 años')
+      .min(21, 'Debes ser mayor de 21 años')
       .max(120, 'Edad no válida'),
     password: z
       .string()

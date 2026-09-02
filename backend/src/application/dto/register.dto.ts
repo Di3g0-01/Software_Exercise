@@ -11,11 +11,11 @@ import {
 
 export class RegisterDto {
   @IsString()
-  @MinLength(2, { message: 'El nombre debe tener al menos 2 caracteres' })
+  @MinLength(3, { message: 'El nombre debe tener al menos 3 caracteres' })
   firstName: string;
 
   @IsString()
-  @MinLength(2, { message: 'El apellido debe tener al menos 2 caracteres' })
+  @MinLength(3, { message: 'El apellido debe tener al menos 3 caracteres' })
   lastName: string;
 
   @IsEmail({}, { message: 'Correo electronico invalido' })
@@ -23,7 +23,7 @@ export class RegisterDto {
 
   @Type(() => Number)
   @IsInt({ message: 'La edad debe ser un numero entero' })
-  @Min(18, { message: 'Debes ser mayor de 18 anos' })
+  @Min(21, { message: 'Debes ser mayor de 21 anos' })
   @Max(120, { message: 'Edad no valida' })
   age: number;
 
