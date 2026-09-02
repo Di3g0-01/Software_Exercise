@@ -14,8 +14,8 @@ export class AppConfigService {
     return process.env.EMAIL_FROM || 'HMFinca <hola@hmfinca.com>';
   }
 
-  get resendApiKey(): string | undefined {
-    return process.env.RESEND_API_KEY;
+  get sendgridApiKey(): string | undefined {
+    return process.env.SENDGRID_API_KEY;
   }
 
   get jwtSecret(): string {

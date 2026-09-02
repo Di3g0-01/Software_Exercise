@@ -33,10 +33,9 @@ export class RegisterUserUseCase {
       verificationToken,
     });
 
-    await this.verificationNotifier.notifyVerificationRequired(
-      user.email,
-      verificationToken,
-    );
+    this.verificationNotifier
+      .notifyVerificationRequired(user.email, verificationToken)
+      .catch((e) => console.error('Background email sending failed', e));
 
     return {
       message:

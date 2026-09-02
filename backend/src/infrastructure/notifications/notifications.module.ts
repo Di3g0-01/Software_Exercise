@@ -4,14 +4,14 @@ import {
   VerificationEmailTemplate,
 } from '../../domain/email/email-message';
 import { VerificationNotifier } from '../../domain/notifications/verification-notifier';
-import { ResendEmailSender } from '../email/resend-email.sender';
+import { SendgridEmailSender } from '../email/sendgrid-email.sender';
 import { HtmlVerificationEmailTemplate } from '../email/verification-email.template';
 import { EmailVerificationNotifier } from './email-verification.notifier';
 
 /** Unico lugar donde se elige el canal y el proveedor de las notificaciones. */
 @Module({
   providers: [
-    { provide: EmailSender, useClass: ResendEmailSender },
+    { provide: EmailSender, useClass: SendgridEmailSender },
     {
       provide: VerificationEmailTemplate,
       useClass: HtmlVerificationEmailTemplate,
